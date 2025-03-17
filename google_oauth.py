@@ -89,6 +89,8 @@ def handle_oauth_callback():
     query_params = st.query_params
     
     if "code" in query_params:
+        st.write("Auth code received: " + query_params["code"][:5] + "...")
+
         try:
             # Create a flow instance with client secrets
             client_config = {
@@ -134,8 +136,12 @@ def handle_oauth_callback():
             st.success("Successfully authenticated with Google!")
             st.rerun()
             
-        except Exception as e:
-            st.error(f"Error during authentication: {str(e)}")
+    except Exception as e:
+        st.error(f"Authentication error: {str(e)}")
+        st.write(f"Error type: {type(e).__name__}")
+        # If available, show more error details
+        if hasattr(e, 'response') and hasattr(e.response, 'text'):
+            st.write(f"Response: {e.response.text}")
     
 def is_authenticated():
     """Check if the user is authenticated."""

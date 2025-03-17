@@ -5,10 +5,10 @@ from googleapiclient.discovery import build
 import os
 import json
 
-# Add your Google OAuth credentials directly (for testing purposes)
-CLIENT_ID = "615890780784-7s647bu9b0lkprobtccp92h4nuheb1s3.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
-REDIRECT_URI = "http://localhost:8501/"
+# Get OAuth credentials from Streamlit secrets
+CLIENT_ID = st.secrets.get("GOOGLE_CLIENT_ID", "")
+CLIENT_SECRET = st.secrets.get("GOOGLE_CLIENT_SECRET", "")
+REDIRECT_URI = st.secrets.get("REDIRECT_URI", "http://localhost:8501/")
 
 # This OAuth 2.0 access scope allows for full read/write access to the
 # authenticated user's account and requires requests to use an SSL connection.
@@ -41,6 +41,12 @@ def setup_google_oauth():
 def show_auth_screen():
     """Display the Google authentication button and handle the flow."""
     st.header("Google Calendar Authentication")
+    
+    # Check if credentials are properly configured
+    if not CLIENT_ID or not CLIENT_SECRET:
+        st.error("Google OAuth credentials are not configured. Please set up your secrets.")
+        st.info("If you're the developer, check the .streamlit/secrets.toml file or Streamlit Cloud secrets.")
+        return
     
     if st.button("Sign in with Google"):
         # Create a flow instance with client secrets

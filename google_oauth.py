@@ -5,17 +5,23 @@ from googleapiclient.discovery import build
 import os
 import json
 
-# Get OAuth credentials from Streamlit secrets with fallback values
+# Get OAuth credentials from Streamlit secrets
 try:
-    CLIENT_ID = st.secrets["GOOGLE_CLIENT_ID"]
-    CLIENT_SECRET = st.secrets["GOOGLE_CLIENT_SECRET"]
-    REDIRECT_URI = st.secrets["REDIRECT_URI"]
-    st.session_state["oauth_configured"] = True
+    # Access the secrets using the exact key names from your secrets.toml file
+    CLIENT_ID = st.secrets.get("GOOGLE_CLIENT_ID", "")
+    CLIENT_SECRET = st.secrets.get("GOOGLE_CLIENT_SECRET", "")
+    REDIRECT_URI = st.secrets.get("REDIRECT_URI", "https://maxaicalender.streamlit.app/")
+    
+    # If the secrets are available but empty, show an error
+    if not CLIENT_ID or not CLIENT_SECRET:
+        st.error("Google OAuth credentials are not properly configured in secrets.")
+        
 except Exception as e:
-    # Add debug info for secret loading errors
-    st.session_state["oauth_configured"] = False
-    st.session_state["oauth_error"] = str(e)
-
+    # Fallback for development or if secrets aren't properly loaded
+    st.error(f"Error loading secrets: {str(e)}")
+    CLIENT_ID = "615890780784-7s647bu9b0lkprobtccp92h4nuheb1s3.apps.googleusercontent.com"
+    CLIENT_SECRET = "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"
+    REDIRECT_URI = "https://maxaicalender.streamlit.app/"
 
 # This OAuth 2.0 access scope allows for full read/write access to the
 # authenticated user's account and requires requests to use an SSL connection.
@@ -48,20 +54,6 @@ def setup_google_oauth():
 def show_auth_screen():
     """Display the Google authentication button and handle the flow."""
     st.header("Google Calendar Authentication")
-    
-    # Debug information for troubleshooting
-    if not st.session_state.get("oauth_configured", True):
-        st.error("Google OAuth credentials are not configured properly.")
-        st.info("Error loading secrets: " + st.session_state.get("oauth_error", "Unknown error"))
-        st.warning("Check if your .streamlit/secrets.toml file exists and contains the required credentials.")
-        
-        # Display current configuration for debugging
-        st.expander("Debug Information").write(f"""
-        Current Configuration:
-        - CLIENT_ID: {CLIENT_ID[:5]}...{CLIENT_ID[-5:] if CLIENT_ID else 'Not set'}
-        - CLIENT_SECRET: {CLIENT_SECRET[:5]}...{CLIENT_SECRET[-5:] if CLIENT_SECRET else 'Not set'} 
-        - REDIRECT_URI: {REDIRECT_URI}
-        """)
     
     if st.button("Sign in with Google"):
         # Create a flow instance with client secrets
@@ -144,19 +136,6 @@ def handle_oauth_callback():
             
         except Exception as e:
             st.error(f"Error during authentication: {str(e)}")
-            # Show more details for debugging
-            st.expander("Authentication Error Details").write(f"""
-            Error Type: {type(e).__name__}
-            Error Message: {str(e)}
-            
-            This might be caused by:
-            1. Mismatched redirect URI
-            2. Invalid client ID or secret
-            3. Invalid authorization code
-            
-            Check that your REDIRECT_URI in secrets.toml ({REDIRECT_URI}) 
-            exactly matches one of the URIs registered in Google Cloud Console.
-            """)
     
 def is_authenticated():
     """Check if the user is authenticated."""

@@ -53,12 +53,16 @@ def setup_google_oauth():
 
 def show_auth_screen():
     """Display the Google authentication button and handle the flow."""
+    # Initialize session state for credentials if not already set
+    if 'google_credentials' not in st.session_state:
+        st.session_state.google_credentials = None
+    
     st.header("Google Calendar Authentication")
     
     # Check for authorization code in URL
     auth_code = get_auth_code_from_url()
     
-    if auth_code and not st.session_state.google_credentials:
+    if auth_code and not st.session_state.get('google_credentials'):
         with st.spinner("🔐 Completing authentication..."):
             try:
                 flow = Flow.from_client_config(
@@ -101,7 +105,7 @@ def show_auth_screen():
                 if hasattr(e, 'response') and hasattr(e.response, 'text'):
                     st.write("Response error:", e.response.text)
     
-    if not st.session_state.google_credentials:
+    if not st.session_state.get('google_credentials'):
         st.write("Please sign in with your Google account to access your calendar.")
         
         if st.button("Sign in with Google", key="google_login"):
@@ -143,7 +147,7 @@ def show_auth_screen():
             st.write(f"- Client ID: {client_id[:10]}...{client_id[-5:]}")
             st.write(f"- Redirect URI: {redirect_uri}")
             st.write(f"- Scopes: {', '.join(scopes)}")
-
+    
 def is_authenticated():
     """Check if the user is authenticated."""
     return st.session_state.get('google_credentials') is not None

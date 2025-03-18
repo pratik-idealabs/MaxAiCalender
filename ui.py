@@ -1,6 +1,6 @@
 import streamlit as st
 from azure_api import call_azure_openai
-from google_oauth import setup_google_oauth, show_auth_screen, handle_oauth_callback, is_authenticated, get_calendar_service, get_calendar_id, logout
+from google_oauth import setup_google_oauth, show_auth_screen, is_authenticated, get_calendar_service, get_calendar_id, logout
 from user_event_handler import handle_calendar_action
 import urllib.parse
 from datetime import datetime, timedelta
@@ -69,14 +69,13 @@ if 'last_action_time' not in st.session_state:
 if 'refresh_requested' not in st.session_state:
     st.session_state.refresh_requested = False
 
-# Handle OAuth callback if there's a code parameter in the URL
-handle_oauth_callback()
+# Note: No separate handle_oauth_callback() call anymore - it's integrated in show_auth_screen()
 
 # Check if the user is authenticated
 authenticated = is_authenticated()
 
 if not authenticated:
-    # Show authentication screen
+    # Show authentication screen - this now handles OAuth callback internally
     show_auth_screen()
 else:
     # User is authenticated, show the calendar interface
@@ -236,4 +235,4 @@ else:
                         st.info("No upcoming events found in the next 7 days.")
             except Exception as e:
                 st.error(f"Unable to fetch upcoming events: {str(e)}")
-                st.info("You can still use the assistant to create and manage events.")   
+                st.info("You can still use the assistant to create and manage events.")

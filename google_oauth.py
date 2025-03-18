@@ -101,9 +101,6 @@ def show_auth_screen():
                 st.rerun()
             except Exception as e:
                 st.error(f"Authentication failed: {str(e)}")
-                st.write("Error details:", type(e).__name__)
-                if hasattr(e, 'response') and hasattr(e.response, 'text'):
-                    st.write("Response error:", e.response.text)
     
     if not st.session_state.get('google_credentials'):
         st.write("Please sign in with your Google account to access your calendar.")
@@ -123,30 +120,6 @@ def show_auth_screen():
                 st.markdown(f"[Click here to authorize]({auth_url})")
             except Exception as e:
                 st.error(f"Error initiating authentication: {str(e)}")
-        
-        # Add direct authentication link as alternative
-        st.markdown("### Alternative Authentication Method")
-        st.write("If the button above doesn't work, try this direct link:")
-        
-        client_id = st.secrets["GOOGLE_CLIENT_ID"]
-        redirect_uri = st.secrets["REDIRECT_URI"]
-        scopes = [
-            'https://www.googleapis.com/auth/calendar',
-            'https://www.googleapis.com/auth/calendar.events',
-            'https://www.googleapis.com/auth/calendar.readonly'
-        ]
-        
-        scope_string = ' '.join(scopes)
-        auth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={client_id}&redirect_uri={urllib.parse.quote_plus(redirect_uri)}&scope={urllib.parse.quote_plus(scope_string)}&response_type=code&access_type=offline&prompt=consent"
-        
-        st.markdown(f'<a href="{auth_url}" target="_self">Direct Google Authorization Link</a>', unsafe_allow_html=True)
-        
-        # Add debugging information
-        with st.expander("Debug Information"):
-            st.write("Configuration details:")
-            st.write(f"- Client ID: {client_id[:10]}...{client_id[-5:]}")
-            st.write(f"- Redirect URI: {redirect_uri}")
-            st.write(f"- Scopes: {', '.join(scopes)}")
     
 def is_authenticated():
     """Check if the user is authenticated."""
